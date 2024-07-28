@@ -1,0 +1,2 @@
+ALTER TABLE listings
+ADD COLUMN total_views INT DEFAULT 0

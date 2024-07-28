@@ -1,0 +1,9 @@
+DROP TABLE notifications;
+DROP TABLE stats;
+DROP TABLE favorites;
+DROP TABLE reviews;
+DROP TABLE payments;
+DROP TABLE bookings;
+DROP TABLE users;
+DROP TABLE listings;
+DROP TABLE admins;

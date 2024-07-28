@@ -1,0 +1,5 @@
+ALTER TABLE notifications 
+ADD COLUMN subject VARCHAR(255),
+ADD COLUMN booking_id INT NOT NULL,
+ADD COLUMN email VARCHAR(255),
+ADD CONSTRAINT fk_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE;
