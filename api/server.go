@@ -3,8 +3,9 @@ package api
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -43,7 +44,8 @@ func NewServer() (*Server, error) {
 			MaxAge:           12 * time.Hour,
 		}))
 
-	connectionString := os.Getenv("db_url")
+	connectionString := "postgresql://root:secret@localhost:5432/rental_listing?sslmode=disable"
+	fmt.Println("Connection String:", connectionString) // Debugging line
 	dbInstance, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		return nil, err
@@ -59,13 +61,15 @@ func NewServer() (*Server, error) {
 		q:  queries,
 	}
 
+	const redisAddr = "localhost:6379"
+
 	// Initialize Asynq client
-	client := asynq.NewClient(asynq.RedisClientOpt{Addr: "localhost:6379"})
+	client := asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 	server.client = client
 
 	redisClient := redis.NewClient(
 		&redis.Options{
-			Addr:     "localhost:6379",
+			Addr:     redisAddr,
 			Password: "",
 			DB:       0,
 		})
@@ -76,10 +80,12 @@ func NewServer() (*Server, error) {
 	mux.HandleFunc(tasks.TypeVerificationEmail, tasks.HandleVerificationEmailTask)
 	mux.HandleFunc(tasks.TypeForgotPasswordEmail, tasks.HandleForgotPasswordEmailTask)
 
-	// Run Asynq background workers
+	// Run Asynq background worker
+
 	go func() {
+		log.Println("Starting Asynq server...")
 		if err := asynq.NewServer(
-			asynq.RedisClientOpt{Addr: "localhost:6379"},
+			asynq.RedisClientOpt{Addr: redisAddr},
 			asynq.Config{
 				Concurrency: 10,
 				Queues: map[string]int{
@@ -87,8 +93,10 @@ func NewServer() (*Server, error) {
 				},
 			},
 		).Run(mux); err != nil {
+			log.Printf("Asynq server error: %v", err)
 			panic(err)
 		}
+		log.Println("Asynq server started successfully")
 	}()
 
 	server.initAdminRoutes(router)
