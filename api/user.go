@@ -2,7 +2,6 @@ package api
 
 import (
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -95,26 +94,8 @@ func (s *Server) CreateUser(c *gin.Context) {
 	code := util.RandomInt(10000, 99999)
 	secretCode := strconv.Itoa(int(code))
 
-	// Convert hexadecimal string to byte slice
-	key, err := hex.DecodeString(keyHex)
-	if err != nil {
-		fmt.Println("Error decoding hex string:", err)
-		return
-	}
-
-	encryptEmail, err := util.Encrypt([]byte(request.Email), key)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	encryptSecretCode, err := util.Encrypt([]byte(secretCode), key)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	// Generate verification link (this can be more secure, e.g., using JWT)
-	verificationLink := fmt.Sprintf("http://localhost:8000/api/user/verify/%s/%s", encryptEmail, encryptSecretCode)
+	verificationLink := fmt.Sprintf("http://localhost:8000/api/user/verify/%s/%s", request.Email, secretCode)
 
 	// Enqueue verification email task
 	task, err := tasks.NewVerificationEmailTask(user.Email, verificationLink, user.Username)
