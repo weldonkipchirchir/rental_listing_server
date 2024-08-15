@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/hibiken/asynq"
 	"github.com/weldonkipchirchir/rental_listing/mail"
@@ -34,19 +33,39 @@ func NewVerificationEmailTask(toEmail string, verificationLink string, username 
 	return asynq.NewTask(TypeVerificationEmail, payload), nil
 }
 
+// func HandleVerificationEmailTask(ctx context.Context, t *asynq.Task) error {
+// 	var payload VerificationEmailPayload
+// 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+// 		return fmt.Errorf("json.Unmarshal failed: %w", err)
+// 	}
+
+// 	// Send verification email using your EmailSender implementation
+// 	sender := mail.NewEmailSender("Rental Listing", "weldonkipchirchir23@gmail.com", "bnylvpwgejjngcne")
+// 	if err := sender.SendVerificationEmail(payload.ToEmail, payload.VerificationLink, payload.Username); err != nil {
+// 		return err
+// 	}
+
+// 	log.Printf("Sent verification email to: %s", payload.ToEmail)
+// return nil
+// }
+
 func HandleVerificationEmailTask(ctx context.Context, t *asynq.Task) error {
+	log.Println("Handling verification email task...")
+
 	var payload VerificationEmailPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+		log.Printf("json.Unmarshal failed: %v", err)
 		return fmt.Errorf("json.Unmarshal failed: %w", err)
 	}
 
-	// Send verification email using your EmailSender implementation
-	sender := mail.NewEmailSender("Rental Listing", "weldonkipchirchir23@gmail.com", "ukeodaruubrozovp")
+	log.Printf("Sending verification email to: %s", payload.ToEmail)
+	sender := mail.NewEmailSender("Rental Listing", "weldonkipchirchir23@gmail.com", "bnylvpwgejjngcne")
 	if err := sender.SendVerificationEmail(payload.ToEmail, payload.VerificationLink, payload.Username); err != nil {
+		log.Printf("Failed to send email: %v", err)
 		return err
 	}
 
-	log.Printf("Sent verification email to: %s", payload.ToEmail)
+	log.Printf("Verification email sent to: %s", payload.ToEmail)
 	return nil
 }
 
@@ -74,10 +93,10 @@ func HandleForgotPasswordEmailTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("json.Unmarshal failed: %w", err)
 	}
 
-	email := os.Getenv("email")
-	password := os.Getenv("passwordEmail")
+	// email := "weldonkipchirchir23@gmail.com"
+	// password := "bnylvpwgejjngcne"
 	// Send forgot password email using your EmailSender implementation
-	sender := mail.NewEmailSender("Rental Listing", email, password)
+	sender := mail.NewEmailSender("Rental Listing", "weldonkipchirchir23@gmail.com", "bnylvpwgejjngcne")
 	content := fmt.Sprintf("Hello %s, your new password is: %s. Please change the password", payload.Username, payload.NewPassword)
 	if err := sender.SendEmail("Your New Password", content, []string{payload.ToEmail}, nil, nil, nil); err != nil {
 		return err
