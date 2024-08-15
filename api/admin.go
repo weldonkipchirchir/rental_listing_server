@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -48,24 +49,20 @@ func (s *Server) CreateAdmin(c *gin.Context) {
 
 	_, err := s.q.GetUser(c, request.Email)
 	if err == nil {
-		// User exists
 		c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
 		return
 	}
 	if err != sql.ErrNoRows {
-		// Some other error occurred
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	_, err = s.q.GetAdmin(c, request.Email)
 	if err == nil {
-		// User exists
 		c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
 		return
 	}
 	if err != sql.ErrNoRows {
-		// Some other error occurred
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -95,40 +92,18 @@ func (s *Server) CreateAdmin(c *gin.Context) {
 
 	code := util.RandomInt(10000, 99999)
 	secretCode := strconv.Itoa(int(code))
-
-	// Convert hexadecimal string to byte slice
-	// key, err := hex.DecodeString(keyHex)
-	// if err != nil {
-	// 	fmt.Println("Error decoding hex string:", err)
-	// 	return
-	// }
-
-	// encryptEmail, err := util.Encrypt([]byte(request.Email), key)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 	return
-	// }
-	// encryptSecretCode, err := util.Encrypt([]byte(secretCode), key)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 	return
-	// }
-
-	// Generate verification link (this can be more secure, e.g., using JWT)
 	verificationLink := fmt.Sprintf("http://localhost:8000/api/admin/verify/%s/%s", request.Email, secretCode)
-
-	// Enqueue verification email task
+	log.Printf("Generated verification link: %s", verificationLink)
 	task, err := tasks.NewVerificationEmailTask(admin.Email, verificationLink, admin.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		log.Printf("Failed to create task: %v", err)
 	}
-
-	_, err = s.client.Enqueue(task)
+	info, err := s.client.Enqueue(task)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		log.Printf("Failed to enqueue task: %v", err)
 	}
+	log.Printf("Enqueued task: id=%s queue=%s", info.ID, info.Queue)
+
 	arg1 := db.CreateVerifyAdminEmailParams{
 		Username:   request.Username,
 		Email:      request.Email,
