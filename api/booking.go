@@ -25,7 +25,7 @@ func (s *Server) CreateBooking(c *gin.Context) {
 
 	user, err := s.q.GetUser(c, email.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized users only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized users only"})
 		return
 	}
 
@@ -175,24 +175,9 @@ func (s *Server) GetBookingsByAdminID(c *gin.Context) {
 
 	admin, err := s.q.GetAdmin(c, email.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized admin only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized admin only"})
 		return
 	}
-
-	// cacheKey := fmt.Sprintf("bookingUserEmail:%s", email.(string))
-
-	// // Try to get data from cache
-	// var bookings []GetBookingsByAdminResponse
-	// err = redisCache.GetCacheRedis(context.Background(), s.redis, cacheKey, &bookings)
-	// if err == nil && len(bookings) != 0 {
-	// 	log.Printf("Retrieved bookings for admin email %s from cache", email.(string))
-	// 	c.JSON(http.StatusOK, bookings)
-	// 	return
-	// } else if err != nil && err != redis.Nil {
-	// 	log.Printf("Error fetching bookings for admin email %s from cache: %v", email.(string), err)
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-	// 	return
-	// }
 
 	rows, err := s.q.GetBookingsByAdminID(c, admin.ID)
 	if err != nil {
@@ -218,22 +203,6 @@ func (s *Server) GetBookingsByAdminID(c *gin.Context) {
 			CreatedAt:    row.CreatedAt.Time.UTC().Format("2006-01-02"),
 		}
 	}
-
-	// Set cache with expiration
-	// jsonData, err := json.Marshal(bookings)
-	// if err != nil {
-	// 	log.Printf("Error marshaling bookings into JSON: %v", err)
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-	// 	return
-	// }
-	// err = redisCache.SetCacheRedis(context.Background(), s.redis, cacheKey, jsonData, time.Hour)
-	// if err != nil {
-	// 	log.Printf("Error setting cache for user email %s: %v", email.(string), err)
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-	// 	return
-	// }
-
-	// log.Printf("Retrieved bookings for admin email %s from DB", email.(string))
 
 	c.JSON(http.StatusOK, bookings)
 }
