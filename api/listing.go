@@ -39,7 +39,7 @@ type createListingResponse struct {
 
 // Create a helper function to upload multiple images
 func UploadMultipleToCloudinary(c *gin.Context, files []*multipart.FileHeader) ([]string, error) {
-	cloudinaryURL := os.Getenv("cloudnary")
+	cloudinaryURL := "cloudinary://541447971657622:ulqvvthi6Vu8aWVcoSmlEoHVRek@dvnkqewxo"
 	cld, err := cloudinary.NewFromURL(cloudinaryURL)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (s *Server) CreateListing(c *gin.Context) {
 
 	admin, err := s.q.GetAdmin(c, email.(string))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized admins only"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authorized admins only"})
 		return
 	}
 
@@ -215,7 +215,7 @@ func (s *Server) GetListings(c *gin.Context) {
 
 	user, err := s.q.GetUser(c, email.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized users only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized users only"})
 		return
 	}
 
@@ -297,13 +297,13 @@ type getAdminListingsResponse struct {
 func (s *Server) GetAdminListings(c *gin.Context) {
 	email, ok := c.Get("email")
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized admins only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized admins only"})
 		return
 	}
 
 	admin, err := s.q.GetAdmin(c, email.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized admins only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized admins only"})
 		return
 	}
 
@@ -369,13 +369,13 @@ type getAdminListingsDataResponse struct {
 func (s *Server) GetAdminListingsData(c *gin.Context) {
 	email, ok := c.Get("email")
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized admins only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized admins only"})
 		return
 	}
 
 	admin, err := s.q.GetAdmin(c, email.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized admins only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized admins only"})
 		return
 	}
 
@@ -489,13 +489,13 @@ func (s *Server) GetListingsByAdminID(c *gin.Context) {
 
 	email, ok := c.Get("email")
 	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized admins only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized admins only"})
 		return
 	}
 
 	admin, err := s.q.GetAdmin(c, email.(string))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unauthorized admins only"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "authorized admins only"})
 		return
 	}
 
